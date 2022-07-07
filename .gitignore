@@ -9,6 +9,12 @@
 .DS_Store
 
 
+=======
+#DS_Store
+.DS_Store
+
+#Ignore Dist Temporarirly
+dist
 
 # Logs
 logs
