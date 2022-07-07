@@ -533,9 +533,8 @@ function hmrAcceptRun(bundle, id) {
 
 },{}],"aenu9":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-var _esArrayIncludesJs = require("core-js/modules/es.array.includes.js"); // window.addEventListener('hashchange', controlRecipes);
+var _webImmediateJs = require("core-js/modules/web.immediate.js"); // window.addEventListener('hashchange', controlRecipes);
  // window.addEventListener('load', controlRecipes);
-var _webImmediateJs = require("core-js/modules/web.immediate.js");
 var _modelJs = require("./model.js");
 var _recipeViewJs = require("./views/recipeView.js");
 var _recipeViewJsDefault = parcelHelpers.interopDefault(_recipeViewJs);
@@ -610,63 +609,59 @@ const init = function() {
 };
 init();
 
-},{"core-js/modules/es.array.includes.js":"dkJzX","core-js/modules/web.immediate.js":"49tUX","./model.js":"Y4A21","./views/recipeView.js":"l60JC","./views/searchView.js":"9OQAM","./views/resultsView.js":"cSbZE","./views/paginationView.js":"6z7bi","regenerator-runtime/runtime":"dXNgZ","regenerator-runtime":"dXNgZ","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"dkJzX":[function(require,module,exports) {
-"use strict";
-var $ = require("../internals/export");
-var $includes = require("../internals/array-includes").includes;
-var fails = require("../internals/fails");
-var addToUnscopables = require("../internals/add-to-unscopables");
-// FF99+ bug
-var BROKEN_ON_SPARSE = fails(function() {
-    return !Array(1).includes();
-});
-// `Array.prototype.includes` method
-// https://tc39.es/ecma262/#sec-array.prototype.includes
-$({
-    target: "Array",
-    proto: true,
-    forced: BROKEN_ON_SPARSE
-}, {
-    includes: function includes(el /* , fromIndex = 0 */ ) {
-        return $includes(this, el, arguments.length > 1 ? arguments[1] : undefined);
-    }
-});
-// https://tc39.es/ecma262/#sec-array.prototype-@@unscopables
-addToUnscopables("includes");
+},{"core-js/modules/web.immediate.js":"49tUX","./model.js":"Y4A21","./views/recipeView.js":"l60JC","./views/searchView.js":"9OQAM","./views/resultsView.js":"cSbZE","./views/paginationView.js":"6z7bi","regenerator-runtime/runtime":"dXNgZ","regenerator-runtime":"dXNgZ","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"49tUX":[function(require,module,exports) {
+// TODO: Remove this module from `core-js@4` since it's split to modules listed below
+require("../modules/web.clear-immediate");
+require("../modules/web.set-immediate");
 
-},{"../internals/export":"dIGt4","../internals/array-includes":"n5IsC","../internals/fails":"hL6D2","../internals/add-to-unscopables":"jx7ej"}],"dIGt4":[function(require,module,exports) {
+},{"../modules/web.clear-immediate":"fOGFr","../modules/web.set-immediate":"l7FDS"}],"fOGFr":[function(require,module,exports) {
+var $ = require("../internals/export");
+var global = require("../internals/global");
+var clearImmediate = require("../internals/task").clear;
+// `clearImmediate` method
+// http://w3c.github.io/setImmediate/#si-clearImmediate
+$({
+    global: true,
+    bind: true,
+    enumerable: true,
+    forced: global.clearImmediate !== clearImmediate
+}, {
+    clearImmediate: clearImmediate
+});
+
+},{"../internals/export":"dIGt4","../internals/global":"i8HOC","../internals/task":"7jDg7"}],"dIGt4":[function(require,module,exports) {
 var global = require("../internals/global");
 var getOwnPropertyDescriptor = require("../internals/object-get-own-property-descriptor").f;
 var createNonEnumerableProperty = require("../internals/create-non-enumerable-property");
 var defineBuiltIn = require("../internals/define-built-in");
-var setGlobal = require("../internals/set-global");
+var defineGlobalProperty = require("../internals/define-global-property");
 var copyConstructorProperties = require("../internals/copy-constructor-properties");
 var isForced = require("../internals/is-forced");
 /*
-  options.target      - name of the target object
-  options.global      - target is the global object
-  options.stat        - export as static methods of target
-  options.proto       - export as prototype methods of target
-  options.real        - real prototype method for the `pure` version
-  options.forced      - export even if the native feature is available
-  options.bind        - bind methods to the target, required for the `pure` version
-  options.wrap        - wrap constructors to preventing global pollution, required for the `pure` version
-  options.unsafe      - use the simple assignment of property instead of delete + defineProperty
-  options.sham        - add a flag to not completely full polyfills
-  options.enumerable  - export as enumerable property
-  options.noTargetGet - prevent calling a getter on target
-  options.name        - the .name of the function if it does not match the key
+  options.target         - name of the target object
+  options.global         - target is the global object
+  options.stat           - export as static methods of target
+  options.proto          - export as prototype methods of target
+  options.real           - real prototype method for the `pure` version
+  options.forced         - export even if the native feature is available
+  options.bind           - bind methods to the target, required for the `pure` version
+  options.wrap           - wrap constructors to preventing global pollution, required for the `pure` version
+  options.unsafe         - use the simple assignment of property instead of delete + defineProperty
+  options.sham           - add a flag to not completely full polyfills
+  options.enumerable     - export as enumerable property
+  options.dontCallGetSet - prevent calling a getter on target
+  options.name           - the .name of the function if it does not match the key
 */ module.exports = function(options, source) {
     var TARGET = options.target;
     var GLOBAL = options.global;
     var STATIC = options.stat;
     var FORCED, target, key, targetProperty, sourceProperty, descriptor;
     if (GLOBAL) target = global;
-    else if (STATIC) target = global[TARGET] || setGlobal(TARGET, {});
+    else if (STATIC) target = global[TARGET] || defineGlobalProperty(TARGET, {});
     else target = (global[TARGET] || {}).prototype;
     if (target) for(key in source){
         sourceProperty = source[key];
-        if (options.noTargetGet) {
+        if (options.dontCallGetSet) {
             descriptor = getOwnPropertyDescriptor(target, key);
             targetProperty = descriptor && descriptor.value;
         } else targetProperty = target[key];
@@ -682,7 +677,7 @@ var isForced = require("../internals/is-forced");
     }
 };
 
-},{"../internals/global":"i8HOC","../internals/object-get-own-property-descriptor":"lk5NI","../internals/create-non-enumerable-property":"8CL42","../internals/define-built-in":"6XwEX","../internals/set-global":"ldqR5","../internals/copy-constructor-properties":"9Z12i","../internals/is-forced":"6uTCZ"}],"i8HOC":[function(require,module,exports) {
+},{"../internals/global":"i8HOC","../internals/object-get-own-property-descriptor":"lk5NI","../internals/create-non-enumerable-property":"8CL42","../internals/define-built-in":"6XwEX","../internals/define-global-property":"ggjnO","../internals/copy-constructor-properties":"9Z12i","../internals/is-forced":"6uTCZ"}],"i8HOC":[function(require,module,exports) {
 var global = arguments[3];
 var check = function(it) {
     return it && it.Math == Math && it;
@@ -789,22 +784,21 @@ module.exports = function(it) {
 };
 
 },{"../internals/indexed-object":"kPk5h","../internals/require-object-coercible":"fOR0B"}],"kPk5h":[function(require,module,exports) {
-var global = require("../internals/global");
 var uncurryThis = require("../internals/function-uncurry-this");
 var fails = require("../internals/fails");
 var classof = require("../internals/classof-raw");
-var Object = global.Object;
+var $Object = Object;
 var split = uncurryThis("".split);
 // fallback for non-array-like ES3 and non-enumerable old V8 strings
 module.exports = fails(function() {
     // throws an error in rhino, see https://github.com/mozilla/rhino/issues/346
     // eslint-disable-next-line no-prototype-builtins -- safe
-    return !Object("z").propertyIsEnumerable(0);
+    return !$Object("z").propertyIsEnumerable(0);
 }) ? function(it) {
-    return classof(it) == "String" ? split(it, "") : Object(it);
-} : Object;
+    return classof(it) == "String" ? split(it, "") : $Object(it);
+} : $Object;
 
-},{"../internals/global":"i8HOC","../internals/function-uncurry-this":"7GlkT","../internals/fails":"hL6D2","../internals/classof-raw":"bdfmm"}],"7GlkT":[function(require,module,exports) {
+},{"../internals/function-uncurry-this":"7GlkT","../internals/fails":"hL6D2","../internals/classof-raw":"bdfmm"}],"7GlkT":[function(require,module,exports) {
 var NATIVE_BIND = require("../internals/function-bind-native");
 var FunctionPrototype = Function.prototype;
 var bind = FunctionPrototype.bind;
@@ -827,16 +821,15 @@ module.exports = function(it) {
 };
 
 },{"../internals/function-uncurry-this":"7GlkT"}],"fOR0B":[function(require,module,exports) {
-var global = require("../internals/global");
-var TypeError = global.TypeError;
+var $TypeError = TypeError;
 // `RequireObjectCoercible` abstract operation
 // https://tc39.es/ecma262/#sec-requireobjectcoercible
 module.exports = function(it) {
-    if (it == undefined) throw TypeError("Can't call method on " + it);
+    if (it == undefined) throw $TypeError("Can't call method on " + it);
     return it;
 };
 
-},{"../internals/global":"i8HOC"}],"5XWKd":[function(require,module,exports) {
+},{}],"5XWKd":[function(require,module,exports) {
 var toPrimitive = require("../internals/to-primitive");
 var isSymbol = require("../internals/is-symbol");
 // `ToPropertyKey` abstract operation
@@ -847,14 +840,13 @@ module.exports = function(argument) {
 };
 
 },{"../internals/to-primitive":"a2mK1","../internals/is-symbol":"4aV4F"}],"a2mK1":[function(require,module,exports) {
-var global = require("../internals/global");
 var call = require("../internals/function-call");
 var isObject = require("../internals/is-object");
 var isSymbol = require("../internals/is-symbol");
 var getMethod = require("../internals/get-method");
 var ordinaryToPrimitive = require("../internals/ordinary-to-primitive");
 var wellKnownSymbol = require("../internals/well-known-symbol");
-var TypeError = global.TypeError;
+var $TypeError = TypeError;
 var TO_PRIMITIVE = wellKnownSymbol("toPrimitive");
 // `ToPrimitive` abstract operation
 // https://tc39.es/ecma262/#sec-toprimitive
@@ -866,13 +858,13 @@ module.exports = function(input, pref) {
         if (pref === undefined) pref = "default";
         result = call(exoticToPrim, input, pref);
         if (!isObject(result) || isSymbol(result)) return result;
-        throw TypeError("Can't convert object to primitive value");
+        throw $TypeError("Can't convert object to primitive value");
     }
     if (pref === undefined) pref = "number";
     return ordinaryToPrimitive(input, pref);
 };
 
-},{"../internals/global":"i8HOC","../internals/function-call":"d7JlP","../internals/is-object":"Z0pBo","../internals/is-symbol":"4aV4F","../internals/get-method":"9Zfiw","../internals/ordinary-to-primitive":"7MME2","../internals/well-known-symbol":"gTwyA"}],"Z0pBo":[function(require,module,exports) {
+},{"../internals/function-call":"d7JlP","../internals/is-object":"Z0pBo","../internals/is-symbol":"4aV4F","../internals/get-method":"9Zfiw","../internals/ordinary-to-primitive":"7MME2","../internals/well-known-symbol":"gTwyA"}],"Z0pBo":[function(require,module,exports) {
 var isCallable = require("../internals/is-callable");
 module.exports = function(it) {
     return typeof it == "object" ? it !== null : isCallable(it);
@@ -886,20 +878,19 @@ module.exports = function(argument) {
 };
 
 },{}],"4aV4F":[function(require,module,exports) {
-var global = require("../internals/global");
 var getBuiltIn = require("../internals/get-built-in");
 var isCallable = require("../internals/is-callable");
 var isPrototypeOf = require("../internals/object-is-prototype-of");
 var USE_SYMBOL_AS_UID = require("../internals/use-symbol-as-uid");
-var Object = global.Object;
+var $Object = Object;
 module.exports = USE_SYMBOL_AS_UID ? function(it) {
     return typeof it == "symbol";
 } : function(it) {
     var $Symbol = getBuiltIn("Symbol");
-    return isCallable($Symbol) && isPrototypeOf($Symbol.prototype, Object(it));
+    return isCallable($Symbol) && isPrototypeOf($Symbol.prototype, $Object(it));
 };
 
-},{"../internals/global":"i8HOC","../internals/get-built-in":"6ZUSY","../internals/is-callable":"l3Kyn","../internals/object-is-prototype-of":"3jtKQ","../internals/use-symbol-as-uid":"2Ye8Q"}],"6ZUSY":[function(require,module,exports) {
+},{"../internals/get-built-in":"6ZUSY","../internals/is-callable":"l3Kyn","../internals/object-is-prototype-of":"3jtKQ","../internals/use-symbol-as-uid":"2Ye8Q"}],"6ZUSY":[function(require,module,exports) {
 var global = require("../internals/global");
 var isCallable = require("../internals/is-callable");
 var aFunction = function(argument) {
@@ -968,33 +959,30 @@ module.exports = function(V, P) {
 };
 
 },{"../internals/a-callable":"gOMir"}],"gOMir":[function(require,module,exports) {
-var global = require("../internals/global");
 var isCallable = require("../internals/is-callable");
 var tryToString = require("../internals/try-to-string");
-var TypeError = global.TypeError;
+var $TypeError = TypeError;
 // `Assert: IsCallable(argument) is true`
 module.exports = function(argument) {
     if (isCallable(argument)) return argument;
-    throw TypeError(tryToString(argument) + " is not a function");
+    throw $TypeError(tryToString(argument) + " is not a function");
 };
 
-},{"../internals/global":"i8HOC","../internals/is-callable":"l3Kyn","../internals/try-to-string":"4O7d7"}],"4O7d7":[function(require,module,exports) {
-var global = require("../internals/global");
-var String = global.String;
+},{"../internals/is-callable":"l3Kyn","../internals/try-to-string":"4O7d7"}],"4O7d7":[function(require,module,exports) {
+var $String = String;
 module.exports = function(argument) {
     try {
-        return String(argument);
+        return $String(argument);
     } catch (error) {
         return "Object";
     }
 };
 
-},{"../internals/global":"i8HOC"}],"7MME2":[function(require,module,exports) {
-var global = require("../internals/global");
+},{}],"7MME2":[function(require,module,exports) {
 var call = require("../internals/function-call");
 var isCallable = require("../internals/is-callable");
 var isObject = require("../internals/is-object");
-var TypeError = global.TypeError;
+var $TypeError = TypeError;
 // `OrdinaryToPrimitive` abstract operation
 // https://tc39.es/ecma262/#sec-ordinarytoprimitive
 module.exports = function(input, pref) {
@@ -1002,10 +990,10 @@ module.exports = function(input, pref) {
     if (pref === "string" && isCallable(fn = input.toString) && !isObject(val = call(fn, input))) return val;
     if (isCallable(fn = input.valueOf) && !isObject(val = call(fn, input))) return val;
     if (pref !== "string" && isCallable(fn = input.toString) && !isObject(val = call(fn, input))) return val;
-    throw TypeError("Can't convert object to primitive value");
+    throw $TypeError("Can't convert object to primitive value");
 };
 
-},{"../internals/global":"i8HOC","../internals/function-call":"d7JlP","../internals/is-callable":"l3Kyn","../internals/is-object":"Z0pBo"}],"gTwyA":[function(require,module,exports) {
+},{"../internals/function-call":"d7JlP","../internals/is-callable":"l3Kyn","../internals/is-object":"Z0pBo"}],"gTwyA":[function(require,module,exports) {
 var global = require("../internals/global");
 var shared = require("../internals/shared");
 var hasOwn = require("../internals/has-own-property");
@@ -1032,10 +1020,10 @@ var store = require("../internals/shared-store");
 (module.exports = function(key, value) {
     return store[key] || (store[key] = value !== undefined ? value : {});
 })("versions", []).push({
-    version: "3.22.5",
+    version: "3.23.3",
     mode: IS_PURE ? "pure" : "global",
     copyright: "\xa9 2014-2022 Denis Pushkarev (zloirock.ru)",
-    license: "https://github.com/zloirock/core-js/blob/v3.22.5/LICENSE",
+    license: "https://github.com/zloirock/core-js/blob/v3.23.3/LICENSE",
     source: "https://github.com/zloirock/core-js"
 });
 
@@ -1044,12 +1032,12 @@ module.exports = false;
 
 },{}],"l4ncH":[function(require,module,exports) {
 var global = require("../internals/global");
-var setGlobal = require("../internals/set-global");
+var defineGlobalProperty = require("../internals/define-global-property");
 var SHARED = "__core-js_shared__";
-var store = global[SHARED] || setGlobal(SHARED, {});
+var store = global[SHARED] || defineGlobalProperty(SHARED, {});
 module.exports = store;
 
-},{"../internals/global":"i8HOC","../internals/set-global":"ldqR5"}],"ldqR5":[function(require,module,exports) {
+},{"../internals/global":"i8HOC","../internals/define-global-property":"ggjnO"}],"ggjnO":[function(require,module,exports) {
 var global = require("../internals/global");
 // eslint-disable-next-line es-x/no-object-defineproperty -- safe
 var defineProperty = Object.defineProperty;
@@ -1078,16 +1066,15 @@ module.exports = Object.hasOwn || function hasOwn(it, key) {
 };
 
 },{"../internals/function-uncurry-this":"7GlkT","../internals/to-object":"5cb35"}],"5cb35":[function(require,module,exports) {
-var global = require("../internals/global");
 var requireObjectCoercible = require("../internals/require-object-coercible");
-var Object = global.Object;
+var $Object = Object;
 // `ToObject` abstract operation
 // https://tc39.es/ecma262/#sec-toobject
 module.exports = function(argument) {
-    return Object(requireObjectCoercible(argument));
+    return $Object(requireObjectCoercible(argument));
 };
 
-},{"../internals/global":"i8HOC","../internals/require-object-coercible":"fOR0B"}],"a3SEE":[function(require,module,exports) {
+},{"../internals/require-object-coercible":"fOR0B"}],"a3SEE":[function(require,module,exports) {
 var uncurryThis = require("../internals/function-uncurry-this");
 var id = 0;
 var postfix = Math.random();
@@ -1132,13 +1119,12 @@ module.exports = DESCRIPTORS ? function(object, key, value) {
 };
 
 },{"../internals/descriptors":"92ZIi","../internals/object-define-property":"iJR4w","../internals/create-property-descriptor":"1lpav"}],"iJR4w":[function(require,module,exports) {
-var global = require("../internals/global");
 var DESCRIPTORS = require("../internals/descriptors");
 var IE8_DOM_DEFINE = require("../internals/ie8-dom-define");
 var V8_PROTOTYPE_DEFINE_BUG = require("../internals/v8-prototype-define-bug");
 var anObject = require("../internals/an-object");
 var toPropertyKey = require("../internals/to-property-key");
-var TypeError = global.TypeError;
+var $TypeError = TypeError;
 // eslint-disable-next-line es-x/no-object-defineproperty -- safe
 var $defineProperty = Object.defineProperty;
 // eslint-disable-next-line es-x/no-object-getownpropertydescriptor -- safe
@@ -1171,12 +1157,12 @@ exports.f = DESCRIPTORS ? V8_PROTOTYPE_DEFINE_BUG ? function defineProperty(O, P
     if (IE8_DOM_DEFINE) try {
         return $defineProperty(O, P, Attributes);
     } catch (error) {}
-    if ("get" in Attributes || "set" in Attributes) throw TypeError("Accessors not supported");
+    if ("get" in Attributes || "set" in Attributes) throw $TypeError("Accessors not supported");
     if ("value" in Attributes) O[P] = Attributes.value;
     return O;
 };
 
-},{"../internals/global":"i8HOC","../internals/descriptors":"92ZIi","../internals/ie8-dom-define":"qS9uN","../internals/v8-prototype-define-bug":"ka1Un","../internals/an-object":"4isCr","../internals/to-property-key":"5XWKd"}],"ka1Un":[function(require,module,exports) {
+},{"../internals/descriptors":"92ZIi","../internals/ie8-dom-define":"qS9uN","../internals/v8-prototype-define-bug":"ka1Un","../internals/an-object":"4isCr","../internals/to-property-key":"5XWKd"}],"ka1Un":[function(require,module,exports) {
 var DESCRIPTORS = require("../internals/descriptors");
 var fails = require("../internals/fails");
 // V8 ~ Chrome 36-
@@ -1190,40 +1176,45 @@ module.exports = DESCRIPTORS && fails(function() {
 });
 
 },{"../internals/descriptors":"92ZIi","../internals/fails":"hL6D2"}],"4isCr":[function(require,module,exports) {
-var global = require("../internals/global");
 var isObject = require("../internals/is-object");
-var String = global.String;
-var TypeError = global.TypeError;
+var $String = String;
+var $TypeError = TypeError;
 // `Assert: Type(argument) is Object`
 module.exports = function(argument) {
     if (isObject(argument)) return argument;
-    throw TypeError(String(argument) + " is not an object");
+    throw $TypeError($String(argument) + " is not an object");
 };
 
-},{"../internals/global":"i8HOC","../internals/is-object":"Z0pBo"}],"6XwEX":[function(require,module,exports) {
-var global = require("../internals/global");
+},{"../internals/is-object":"Z0pBo"}],"6XwEX":[function(require,module,exports) {
 var isCallable = require("../internals/is-callable");
-var createNonEnumerableProperty = require("../internals/create-non-enumerable-property");
+var definePropertyModule = require("../internals/object-define-property");
 var makeBuiltIn = require("../internals/make-built-in");
-var setGlobal = require("../internals/set-global");
+var defineGlobalProperty = require("../internals/define-global-property");
 module.exports = function(O, key, value, options) {
-    var unsafe = options ? !!options.unsafe : false;
-    var simple = options ? !!options.enumerable : false;
-    var noTargetGet = options ? !!options.noTargetGet : false;
-    var name = options && options.name !== undefined ? options.name : key;
+    if (!options) options = {};
+    var simple = options.enumerable;
+    var name = options.name !== undefined ? options.name : key;
     if (isCallable(value)) makeBuiltIn(value, name, options);
-    if (O === global) {
+    if (options.global) {
         if (simple) O[key] = value;
-        else setGlobal(key, value);
-        return O;
-    } else if (!unsafe) delete O[key];
-    else if (!noTargetGet && O[key]) simple = true;
-    if (simple) O[key] = value;
-    else createNonEnumerableProperty(O, key, value);
+        else defineGlobalProperty(key, value);
+    } else {
+        try {
+            if (!options.unsafe) delete O[key];
+            else if (O[key]) simple = true;
+        } catch (error) {}
+        if (simple) O[key] = value;
+        else definePropertyModule.f(O, key, {
+            value: value,
+            enumerable: false,
+            configurable: !options.nonConfigurable,
+            writable: !options.nonWritable
+        });
+    }
     return O;
 };
 
-},{"../internals/global":"i8HOC","../internals/is-callable":"l3Kyn","../internals/create-non-enumerable-property":"8CL42","../internals/make-built-in":"cTB4k","../internals/set-global":"ldqR5"}],"cTB4k":[function(require,module,exports) {
+},{"../internals/is-callable":"l3Kyn","../internals/object-define-property":"iJR4w","../internals/make-built-in":"cTB4k","../internals/define-global-property":"ggjnO"}],"cTB4k":[function(require,module,exports) {
 var fails = require("../internals/fails");
 var isCallable = require("../internals/is-callable");
 var hasOwn = require("../internals/has-own-property");
@@ -1245,20 +1236,23 @@ var makeBuiltIn = module.exports = function(value, name, options) {
     if (String(name).slice(0, 7) === "Symbol(") name = "[" + String(name).replace(/^Symbol\(([^)]*)\)/, "$1") + "]";
     if (options && options.getter) name = "get " + name;
     if (options && options.setter) name = "set " + name;
-    if (!hasOwn(value, "name") || CONFIGURABLE_FUNCTION_NAME && value.name !== name) defineProperty(value, "name", {
-        value: name,
-        configurable: true
-    });
+    if (!hasOwn(value, "name") || CONFIGURABLE_FUNCTION_NAME && value.name !== name) {
+        if (DESCRIPTORS) defineProperty(value, "name", {
+            value: name,
+            configurable: true
+        });
+        else value.name = name;
+    }
     if (CONFIGURABLE_LENGTH && options && hasOwn(options, "arity") && value.length !== options.arity) defineProperty(value, "length", {
         value: options.arity
     });
-    if (options && hasOwn(options, "constructor") && options.constructor) {
-        if (DESCRIPTORS) try {
-            defineProperty(value, "prototype", {
+    try {
+        if (options && hasOwn(options, "constructor") && options.constructor) {
+            if (DESCRIPTORS) defineProperty(value, "prototype", {
                 writable: false
             });
-        } catch (error) {}
-    } else value.prototype = undefined;
+        } else if (value.prototype) value.prototype = undefined;
+    } catch (error) {}
     var state = enforceInternalState(value);
     if (!hasOwn(state, "source")) state.source = TEMPLATE.join(typeof name == "string" ? name : "");
     return value;
@@ -1484,14 +1478,24 @@ module.exports = function(index, length) {
 };
 
 },{"../internals/to-integer-or-infinity":"kLXGe"}],"kLXGe":[function(require,module,exports) {
-var ceil = Math.ceil;
-var floor = Math.floor;
+var trunc = require("../internals/math-trunc");
 // `ToIntegerOrInfinity` abstract operation
 // https://tc39.es/ecma262/#sec-tointegerorinfinity
 module.exports = function(argument) {
     var number = +argument;
-    // eslint-disable-next-line no-self-compare -- safe
-    return number !== number || number === 0 ? 0 : (number > 0 ? floor : ceil)(number);
+    // eslint-disable-next-line no-self-compare -- NaN check
+    return number !== number || number === 0 ? 0 : trunc(number);
+};
+
+},{"../internals/math-trunc":"7O8gb"}],"7O8gb":[function(require,module,exports) {
+var ceil = Math.ceil;
+var floor = Math.floor;
+// `Math.trunc` method
+// https://tc39.es/ecma262/#sec-math.trunc
+// eslint-disable-next-line es-x/no-math-trunc -- safe
+module.exports = Math.trunc || function trunc(x) {
+    var n = +x;
+    return (n > 0 ? floor : ceil)(n);
 };
 
 },{}],"lY4mS":[function(require,module,exports) {
@@ -1543,152 +1547,7 @@ var NATIVE = isForced.NATIVE = "N";
 var POLYFILL = isForced.POLYFILL = "P";
 module.exports = isForced;
 
-},{"../internals/fails":"hL6D2","../internals/is-callable":"l3Kyn"}],"jx7ej":[function(require,module,exports) {
-var wellKnownSymbol = require("../internals/well-known-symbol");
-var create = require("../internals/object-create");
-var definePropertyModule = require("../internals/object-define-property");
-var UNSCOPABLES = wellKnownSymbol("unscopables");
-var ArrayPrototype = Array.prototype;
-// Array.prototype[@@unscopables]
-// https://tc39.es/ecma262/#sec-array.prototype-@@unscopables
-if (ArrayPrototype[UNSCOPABLES] == undefined) definePropertyModule.f(ArrayPrototype, UNSCOPABLES, {
-    configurable: true,
-    value: create(null)
-});
-// add a key to Array.prototype[@@unscopables]
-module.exports = function(key) {
-    ArrayPrototype[UNSCOPABLES][key] = true;
-};
-
-},{"../internals/well-known-symbol":"gTwyA","../internals/object-create":"duSQE","../internals/object-define-property":"iJR4w"}],"duSQE":[function(require,module,exports) {
-/* global ActiveXObject -- old IE, WSH */ var anObject = require("../internals/an-object");
-var definePropertiesModule = require("../internals/object-define-properties");
-var enumBugKeys = require("../internals/enum-bug-keys");
-var hiddenKeys = require("../internals/hidden-keys");
-var html = require("../internals/html");
-var documentCreateElement = require("../internals/document-create-element");
-var sharedKey = require("../internals/shared-key");
-var GT = ">";
-var LT = "<";
-var PROTOTYPE = "prototype";
-var SCRIPT = "script";
-var IE_PROTO = sharedKey("IE_PROTO");
-var EmptyConstructor = function() {};
-var scriptTag = function(content) {
-    return LT + SCRIPT + GT + content + LT + "/" + SCRIPT + GT;
-};
-// Create object with fake `null` prototype: use ActiveX Object with cleared prototype
-var NullProtoObjectViaActiveX = function(activeXDocument1) {
-    activeXDocument1.write(scriptTag(""));
-    activeXDocument1.close();
-    var temp = activeXDocument1.parentWindow.Object;
-    activeXDocument1 = null; // avoid memory leak
-    return temp;
-};
-// Create object with fake `null` prototype: use iframe Object with cleared prototype
-var NullProtoObjectViaIFrame = function() {
-    // Thrash, waste and sodomy: IE GC bug
-    var iframe = documentCreateElement("iframe");
-    var JS = "java" + SCRIPT + ":";
-    var iframeDocument;
-    iframe.style.display = "none";
-    html.appendChild(iframe);
-    // https://github.com/zloirock/core-js/issues/475
-    iframe.src = String(JS);
-    iframeDocument = iframe.contentWindow.document;
-    iframeDocument.open();
-    iframeDocument.write(scriptTag("document.F=Object"));
-    iframeDocument.close();
-    return iframeDocument.F;
-};
-// Check for document.domain and active x support
-// No need to use active x approach when document.domain is not set
-// see https://github.com/es-shims/es5-shim/issues/150
-// variation of https://github.com/kitcambridge/es5-shim/commit/4f738ac066346
-// avoid IE GC bug
-var activeXDocument;
-var NullProtoObject = function() {
-    try {
-        activeXDocument = new ActiveXObject("htmlfile");
-    } catch (error) {}
-    NullProtoObject = typeof document != "undefined" ? document.domain && activeXDocument ? NullProtoObjectViaActiveX(activeXDocument) // old IE
-     : NullProtoObjectViaIFrame() : NullProtoObjectViaActiveX(activeXDocument); // WSH
-    var length = enumBugKeys.length;
-    while(length--)delete NullProtoObject[PROTOTYPE][enumBugKeys[length]];
-    return NullProtoObject();
-};
-hiddenKeys[IE_PROTO] = true;
-// `Object.create` method
-// https://tc39.es/ecma262/#sec-object.create
-// eslint-disable-next-line es-x/no-object-create -- safe
-module.exports = Object.create || function create(O, Properties) {
-    var result;
-    if (O !== null) {
-        EmptyConstructor[PROTOTYPE] = anObject(O);
-        result = new EmptyConstructor();
-        EmptyConstructor[PROTOTYPE] = null;
-        // add "__proto__" for Object.getPrototypeOf polyfill
-        result[IE_PROTO] = O;
-    } else result = NullProtoObject();
-    return Properties === undefined ? result : definePropertiesModule.f(result, Properties);
-};
-
-},{"../internals/an-object":"4isCr","../internals/object-define-properties":"duA6W","../internals/enum-bug-keys":"9RnJm","../internals/hidden-keys":"661m4","../internals/html":"2pze4","../internals/document-create-element":"4bOHl","../internals/shared-key":"eAjGz"}],"duA6W":[function(require,module,exports) {
-var DESCRIPTORS = require("../internals/descriptors");
-var V8_PROTOTYPE_DEFINE_BUG = require("../internals/v8-prototype-define-bug");
-var definePropertyModule = require("../internals/object-define-property");
-var anObject = require("../internals/an-object");
-var toIndexedObject = require("../internals/to-indexed-object");
-var objectKeys = require("../internals/object-keys");
-// `Object.defineProperties` method
-// https://tc39.es/ecma262/#sec-object.defineproperties
-// eslint-disable-next-line es-x/no-object-defineproperties -- safe
-exports.f = DESCRIPTORS && !V8_PROTOTYPE_DEFINE_BUG ? Object.defineProperties : function defineProperties(O, Properties) {
-    anObject(O);
-    var props = toIndexedObject(Properties);
-    var keys = objectKeys(Properties);
-    var length = keys.length;
-    var index = 0;
-    var key;
-    while(length > index)definePropertyModule.f(O, key = keys[index++], props[key]);
-    return O;
-};
-
-},{"../internals/descriptors":"92ZIi","../internals/v8-prototype-define-bug":"ka1Un","../internals/object-define-property":"iJR4w","../internals/an-object":"4isCr","../internals/to-indexed-object":"jLWwQ","../internals/object-keys":"kzBf4"}],"kzBf4":[function(require,module,exports) {
-var internalObjectKeys = require("../internals/object-keys-internal");
-var enumBugKeys = require("../internals/enum-bug-keys");
-// `Object.keys` method
-// https://tc39.es/ecma262/#sec-object.keys
-// eslint-disable-next-line es-x/no-object-keys -- safe
-module.exports = Object.keys || function keys(O) {
-    return internalObjectKeys(O, enumBugKeys);
-};
-
-},{"../internals/object-keys-internal":"hl5T1","../internals/enum-bug-keys":"9RnJm"}],"2pze4":[function(require,module,exports) {
-var getBuiltIn = require("../internals/get-built-in");
-module.exports = getBuiltIn("document", "documentElement");
-
-},{"../internals/get-built-in":"6ZUSY"}],"49tUX":[function(require,module,exports) {
-// TODO: Remove this module from `core-js@4` since it's split to modules listed below
-require("../modules/web.clear-immediate");
-require("../modules/web.set-immediate");
-
-},{"../modules/web.clear-immediate":"fOGFr","../modules/web.set-immediate":"l7FDS"}],"fOGFr":[function(require,module,exports) {
-var $ = require("../internals/export");
-var global = require("../internals/global");
-var clearImmediate = require("../internals/task").clear;
-// `clearImmediate` method
-// http://w3c.github.io/setImmediate/#si-clearImmediate
-$({
-    global: true,
-    bind: true,
-    enumerable: true,
-    forced: global.clearImmediate !== clearImmediate
-}, {
-    clearImmediate: clearImmediate
-});
-
-},{"../internals/export":"dIGt4","../internals/global":"i8HOC","../internals/task":"7jDg7"}],"7jDg7":[function(require,module,exports) {
+},{"../internals/fails":"hL6D2","../internals/is-callable":"l3Kyn"}],"7jDg7":[function(require,module,exports) {
 var global = require("../internals/global");
 var apply = require("../internals/function-apply");
 var bind = require("../internals/function-bind-context");
@@ -1806,19 +1665,22 @@ module.exports = function(fn, that) {
     };
 };
 
-},{"../internals/function-uncurry-this":"7GlkT","../internals/a-callable":"gOMir","../internals/function-bind-native":"i16Dq"}],"RsFXo":[function(require,module,exports) {
+},{"../internals/function-uncurry-this":"7GlkT","../internals/a-callable":"gOMir","../internals/function-bind-native":"i16Dq"}],"2pze4":[function(require,module,exports) {
+var getBuiltIn = require("../internals/get-built-in");
+module.exports = getBuiltIn("document", "documentElement");
+
+},{"../internals/get-built-in":"6ZUSY"}],"RsFXo":[function(require,module,exports) {
 var uncurryThis = require("../internals/function-uncurry-this");
 module.exports = uncurryThis([].slice);
 
 },{"../internals/function-uncurry-this":"7GlkT"}],"b9O3D":[function(require,module,exports) {
-var global = require("../internals/global");
-var TypeError = global.TypeError;
+var $TypeError = TypeError;
 module.exports = function(passed, required) {
-    if (passed < required) throw TypeError("Not enough arguments");
+    if (passed < required) throw $TypeError("Not enough arguments");
     return passed;
 };
 
-},{"../internals/global":"i8HOC"}],"bzGah":[function(require,module,exports) {
+},{}],"bzGah":[function(require,module,exports) {
 var userAgent = require("../internals/engine-user-agent");
 module.exports = /(?:ipad|iphone|ipod).*applewebkit/i.test(userAgent);
 
@@ -2737,7 +2599,7 @@ class View {
         const curElements = Array.from(this._parentElement.querySelectorAll("*"));
         newElements.forEach((newEl, i)=>{
             const curEl = curElements[i];
-            // console.log(curEl, newEl.isEqualNode(curEl));
+            console.log(curEl, newEl.isEqualNode(curEl));
             // Updates Change TEXT
             if (!newEl.isEqualNode(curEl) && newEl.firstChild?.nodeValue.trim() != "") // console.log('💥', newEl.firstChild.nodeValue.trim());
             curEl.textContent = newEl.textContent;
