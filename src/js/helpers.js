@@ -9,6 +9,31 @@ const timeout = function (s) {
 	});
 };
 
+export const AJAX = async function (url, uploadData = undefined) {
+	try {
+		const fetchPro = uploadData
+			? fetch(url, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+					body: JSON.stringify(uploadData),
+			  })
+			: fetch(url);
+
+		const res = await Promise.race([fetchPro, timeout(TIMEOUT_SEC)]);
+		const data = await res.json();
+
+		if (!res.ok) throw new Error(`${data.message} (${res.status})`);
+		return data;
+	} catch (err) {
+		// Temp error handling that gets pass to model.js
+		throw err;
+	}
+};
+
+/*
+
 export const getJSON = async function (url) {
 	try {
 		const fetchPro = fetch(url);
@@ -34,6 +59,7 @@ export const sendJSON = async function (url, uploadData) {
 			},
 			body: JSON.stringify(uploadData),
 		});
+
 		const res = await Promise.race([fetchPro, timeout(TIMEOUT_SEC)]);
 		// 'https://forkify-api.herokuapp.com/api/v2/recipes/5ed6604591c37cdc054bccb2'
 
@@ -45,4 +71,4 @@ export const sendJSON = async function (url, uploadData) {
 		// Temp error handling that gets pass to model.js
 		throw err;
 	}
-};
+};*/
